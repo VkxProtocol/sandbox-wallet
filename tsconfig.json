@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": { "@sandbox-wallet/core": ["./packages/core/src/index.ts"] }
+  },
+  "include": ["scripts", "apps/demo/src/treasury.ts"]
+}

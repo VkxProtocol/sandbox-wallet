@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sandbox Wallet — a carteira que usa máscaras</title>
+  <meta name="description" content="Cada site recebe uma máscara: um endereço derivado da sua frase, com orçamento limitado. A carteira principal nunca aparece. Se o site for golpe, ele leva só a máscara." />
+  <style>
+    :root { --bg:#0b0d10; --panel:#14181d; --line:#262c34; --text:#e8ecf1; --muted:#8b95a3; --accent:#35d07f; --danger:#ff5c5c; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font: 16px/1.6 ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 48px 20px 64px; }
+    h1 { font-size: 40px; letter-spacing: -1px; margin: 0 0 8px; line-height: 1.1; }
+    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin: 40px 0 12px; }
+    p { margin: 0 0 14px; }
+    .lead { font-size: 20px; color: var(--muted); }
+    .cta { display: inline-block; background: var(--accent); color: #06130c; font-weight: 700; padding: 14px 22px; border-radius: 8px; text-decoration: none; margin: 18px 12px 0 0; }
+    .cta.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+    .card h3 { margin: 0 0 6px; font-size: 16px; }
+    .card p { color: var(--muted); margin: 0; font-size: 14px; }
+    .bad { border-color: var(--danger); }
+    .good { border-color: var(--accent); }
+    ol, ul { padding-left: 22px; color: var(--muted); }
+    li { margin-bottom: 6px; }
+    code { background: #1c2229; padding: 1px 6px; border-radius: 4px; font-size: 14px; }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+    a { color: #7cc4ff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sandbox Wallet</h1>
+    <p class="lead">A carteira que usa máscaras. Quem fala com o site é uma máscara com orçamento limitado. A carteira principal nunca aparece.</p>
+    <a class="cta" href="./app/">Ver a demonstração ao vivo</a>
+    <a class="cta ghost" href="https://github.com/VkxProtocol/sandbox-wallet">Código no GitHub</a>
+
+    <h2>O problema</h2>
+    <p>Todo golpe de "aprovação" funciona do mesmo jeito: um site pede uma assinatura inocente ("resgatar airdrop", "aprovar para continuar") e a assinatura dá ao golpista o poder de mover tudo que está na carteira conectada. As carteiras de hoje conectam a carteira inteira ao site. Os simuladores avisam antes de assinar, mas o aviso é ignorado, e um site golpe bem feito engana a simulação. Em Solana nem existe "aprovação": a própria transação assinada pode levar qualquer token da conta.</p>
+
+    <h2>A solução</h2>
+    <p>Nunca conectar a carteira principal. Para cada site, a carteira deriva uma <b>máscara</b>: um endereço calculado a partir da mesma frase de recuperação e do nome do site. A máscara recebe só o <b>orçamento</b> que você definiu para aquela sessão. O site conecta, aprova, assina e opera com a máscara. O resultado volta direto para a principal. No fim, as sobras são varridas de volta.</p>
+    <div class="grid">
+      <div class="card bad">
+        <h3>Carteira comum</h3>
+        <p>Site golpe pede aprovação → usuário assina → golpista leva 100% da carteira.</p>
+      </div>
+      <div class="card good">
+        <h3>Sandbox Wallet</h3>
+        <p>Site golpe pede aprovação → usuário assina → golpista leva só o orçamento da máscara. A principal não existe para ele.</p>
+      </div>
+    </div>
+
+    <h2>Para quem</h2>
+    <p>Para qualquer pessoa que conecta a carteira em sites: quem usa DeFi, quem resgata airdrops, quem joga, quem compra NFT. Especialmente para quem está começando e ainda assina sem ler. E para carteiras que queiram adotar o modelo: o site não precisa mudar nada, a máscara é uma carteira comum para ele.</p>
+
+    <h2>Como funciona por dentro</h2>
+    <ul>
+      <li><b>Derivação:</b> índice = primeiros 4 bytes de <code>sha256("sandbox-wallet/v1/" + site + "/" + rotação)</code>. EVM: <code>m/44'/60'/1'/0/índice</code>. Solana: <code>m/44'/501'/índice'/1'</code>. Mesma frase, caminhos que nenhuma outra carteira usa.</li>
+      <li><b>Recuperável:</b> frase + nome do site recriam a máscara em qualquer lugar. "Trocar de máscara" é subir a rotação.</li>
+      <li><b>Orçamento:</b> abastecimento numa transação (Solana) ou em lote (EVM). O site nunca alcança mais que isso.</li>
+      <li><b>Varredura:</b> devolve tokens e moeda à principal; em Solana fecha as contas e recupera o aluguel, então o custo líquido é quase só a taxa de rede.</li>
+      <li><b>Redes:</b> Solana e todas as EVM (BSC, Ethereum, Polygon, Arbitrum, Base) com o mesmo código.</li>
+    </ul>
+
+    <h2>A demonstração</h2>
+    <ol>
+      <li>Crie uma carteira de demonstração (uma tesouraria de teste deposita moeda e 1000 USDX de brinquedo).</li>
+      <li>Um site golpe ("airdrop grátis") pede para conectar. Escolha a máscara, ou a carteira principal para ver o que acontece hoje.</li>
+      <li>Assine sem ler. O golpista drena a conta conectada.</li>
+      <li>Veja os saldos: com a máscara, a principal continua intacta.</li>
+    </ol>
+    <a class="cta" href="./app/">Abrir a demonstração</a>
+
+    <footer>
+      Hack Brasil 2026 · trilha Cibersegurança · redes de teste, sem valor real · <a href="https://github.com/VkxProtocol/sandbox-wallet">repositório</a>
+    </footer>
+  </div>
+</body>
+</html>

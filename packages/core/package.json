@@ -1,0 +1,34 @@
+{
+  "name": "@sandbox-wallet/core",
+  "version": "0.1.0",
+  "description": "Núcleo da Sandbox Wallet: derivação de máscaras por site, abastecimento com orçamento e varredura de volta (EVM e Solana).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@noble/curves": "1.6.0",
+    "@noble/hashes": "1.5.0",
+    "@scure/bip32": "1.5.0",
+    "@scure/bip39": "1.4.0",
+    "@solana/spl-token": "0.4.9",
+    "@solana/web3.js": "1.95.4",
+    "ethers": "6.13.4"
+  },
+  "devDependencies": {
+    "vitest": "2.1.4"
+  }
+}
