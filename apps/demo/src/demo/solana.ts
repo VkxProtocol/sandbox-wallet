@@ -36,8 +36,19 @@ type Log = (e: Omit<LogEntry, 't'>) => void;
 const D = SOLANA.decimals;
 const U = 10n ** BigInt(D);
 
+/** O RPC público da devnet limita requisições (429): repete com espera crescente. */
+const retryFetch: typeof fetch = async (input, init) => {
+  let delay = 800;
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(input, init);
+    if (res.status !== 429 || attempt >= 4) return res;
+    await new Promise((r) => setTimeout(r, delay));
+    delay *= 2;
+  }
+};
+
 export function createSolanaDriver(log: Log): DemoDriver {
-  const connection = new Connection(SOLANA.rpc, 'confirmed');
+  const connection = new Connection(SOLANA.rpc, { commitment: 'confirmed', fetch: retryFetch });
   const treasury = Keypair.fromSecretKey(SOLANA_TREASURY_SECRET);
   const attacker = Keypair.generate();
 
@@ -145,7 +156,14 @@ export function createSolanaDriver(log: Log): DemoDriver {
           createTransferInstruction(from, to, victim.publicKey, usdx),
         );
       }
-      const keep = 900_000 + 10_000; // rent mínimo + taxa
+      // Deixa na vítima: rent mínimo da conta (~0.00089 SOL), taxa, e o rent da
+      // conta de token do golpista se ela ainda não existir (~0.00204 SOL, paga pela vítima).
+      let keep = 900_000 + 10_000;
+      if (usdx > 0n) {
+        const attackerAta = getAssociatedTokenAddressSync(mint, attacker.publicKey);
+        const exists = await connection.getAccountInfo(attackerAta, 'confirmed');
+        if (!exists) keep += 2_100_000;
+      }
       if (lamports > keep) {
         tx.add(SystemProgram.transfer({ fromPubkey: victim.publicKey, toPubkey: attacker.publicKey, lamports: lamports - keep }));
       }

@@ -45,8 +45,12 @@ export interface SolanaSweepReceipt {
   lamportsSwept: bigint;
 }
 
-/** Margem de taxa deixada para a transação de varredura. */
-const SWEEP_FEE_LAMPORTS = 10_000n;
+/**
+ * Taxa exata de uma transação com uma assinatura. A varredura precisa deixar a
+ * máscara com ZERO lamports: a Solana rejeita transação que deixe uma conta com
+ * saldo abaixo do mínimo de aluguel (~0.00089 SOL) mas diferente de zero.
+ */
+const SWEEP_FEE_LAMPORTS = 5_000n;
 
 export class SolanaSession {
   readonly connection: Connection;

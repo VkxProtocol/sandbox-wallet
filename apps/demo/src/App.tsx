@@ -15,7 +15,7 @@ type Step = 'idle' | 'ready' | 'connect-request' | 'connected' | 'sign-request' 
 /** Traduz os erros mais comuns das redes para uma frase curta. */
 function friendlyError(msg: string): string {
   if (/no record of a prior credit|insufficient funds|insufficient lamports/i.test(msg)) {
-    return 'Saldo insuficiente na rede de teste. A tesouraria de demonstração precisa ser recarregada no faucet.';
+    return 'Saldo insuficiente na rede de teste para essa transação. Se foi ao criar a carteira, a tesouraria de demonstração precisa ser recarregada no faucet.';
   }
   if (/Failed to fetch|NetworkError|ECONNREFUSED|could not detect network|SERVER_ERROR/i.test(msg)) {
     return 'A rede de teste não respondeu. Tente de novo em instantes.';
@@ -71,6 +71,8 @@ export function App() {
     } finally {
       setBusy(null);
       await refresh();
+      // RPCs públicos às vezes respondem com um bloco atrasado logo após a confirmação.
+      setTimeout(() => void refresh(), 2500);
     }
   }
 

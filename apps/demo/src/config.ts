@@ -11,7 +11,7 @@ export const SOLANA = {
   explorerTx: (sig: string) => `https://explorer.solana.com/tx/${sig}?cluster=devnet`,
   explorerAddr: (a: string) => `https://explorer.solana.com/address/${a}?cluster=devnet`,
   /** Mint do USDX de demonstração (autoridade = tesouraria). Vazio = cria na hora. */
-  usdxMint: '',
+  usdxMint: '3x8CwnBNhAV4pdHjr4k2q9oQpWRWaDoCKhShsGTCPsYv',
   decimals: 6,
   /** Quanto a tesouraria dá para cada carteira de demonstração. */
   setupSol: 0.05,
@@ -37,8 +37,8 @@ export const EVM: Record<'bsc-testnet' | 'local', {
     chainId: 97,
     explorerTx: (h) => `https://testnet.bscscan.com/tx/${h}`,
     explorerAddr: (a) => `https://testnet.bscscan.com/address/${a}`,
-    usdx: '',
-    drainer: '',
+    usdx: '0x6E290E400d176a5fFc9B2C47089605392bBC65e3',
+    drainer: '0xB0B6Bf0e7e2aAC4e45Dcb8df4F6B161b598A43B2',
     symbol: 'tBNB',
   },
   local: {
